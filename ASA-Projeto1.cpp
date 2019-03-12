@@ -1,6 +1,6 @@
 /*=====================================*/
 /*      ASA 2018/2019 - Projeto 1      */
-/*	        João Dinis 89485	       */
+/*	        Joao Dinis 89485	       */
 /*	      Tiago Fonseca 89542	       */
 /*=====================================*/
 
@@ -12,9 +12,18 @@
 
 using namespace std;
 
-int routers, connections;
-int** matrix;
-vector<int> elements;
+int numRouters, numConnections;
+vector<router> routers;
+
+struct {
+	int id;
+	vector<int*> connections;
+} router;
+
+struct {
+	int size;
+	router* firstElement;
+} graph;
 
 void readInput(string fileName) {
 	ifstream file;
@@ -29,39 +38,21 @@ void readInput(string fileName) {
 		stringstream ss;
 
 		getline(file, line);
-		routers = stoi(line);
+		numRouters = stoi(line);
 		getline(file, line);
-		connections = stoi(line);
-
-		int **matrix = new int*[routers];
-		for (int i = 0; i < routers; ++i) {
-			elements.push_back(i + 1);
-    		matrix[i] = new int[routers];
-		}
+		numConnections = stoi(line);
 
 		for (int i = 0; i < connections; i++) {
 			getline(file, line);
+			router r = new router;
+
 			ss << line;
 			ss >> numb1 >> numb2;
+			// Não me apeteceu fazer a parte de guardar os elementos xD
 			ss.str("");
 			ss.clear();
-
-			matrix[numb1 - 1][numb2 - 1] = 1;
-			matrix[numb2 - 1][numb1 - 1] = 1;
 		}
 
-		cout << "MATRIX" << endl;
-		for (int i = 0; i <routers; i++) {
-			for (int j = 0; j < routers; j++) {
-				cout << matrix[i][j] << " ";
-			}
-			cout << endl;
-		}
-
-		cout << "Vector" << endl;
-		for (int i = 0; i < elements.size(); i++) {
-			cout << elements[i] << " " << endl;
-		}
 		file.close();
 	}
 }
@@ -70,4 +61,46 @@ void readInput(string fileName) {
 int main(int argc, char *argv[]) {
 	readInput(argv[1]);
 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int** matrixInit () {
+	int **matrix = new int*[routers];
+
+	for (int i = 0; i < routers; ++i) {
+		matrix[i] = new int[routers];
+	}
+
+	return matrix;
+}
+
+int** addMatrixElement(int x, int y) {
+	matrix[x - 1][y - 1] = 1;
+	matrix[y - 1][x - 1] = 1;
+}
+
+void printMatrix() {
+	cout << "MATRIX" << endl;
+	for (int i = 0; i <routers; i++) {
+		for (int j = 0; j < routers; j++) {
+			cout << matrix[i][j] << " ";
+		}
+		cout << endl;
+	}
 }
