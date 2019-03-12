@@ -12,18 +12,19 @@
 
 using namespace std;
 
-int numRouters, numConnections;
-vector<router> routers;
-
-struct {
+typedef struct {
 	int id;
 	vector<int*> connections;
 } router;
 
-struct {
+typedef struct {
 	int size;
 	router* firstElement;
 } graph;
+
+/* Variaveis */
+int numRouters, numConnections;
+vector<router> routers;
 
 void readInput(string fileName) {
 	ifstream file;
@@ -42,9 +43,9 @@ void readInput(string fileName) {
 		getline(file, line);
 		numConnections = stoi(line);
 
-		for (int i = 0; i < connections; i++) {
+		for (int i = 0; i < numConnections; i++) {
 			getline(file, line);
-			router r = new router;
+			router r;
 
 			ss << line;
 			ss >> numb1 >> numb2;
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]) {
 
 
 
-
+/*
 int** matrixInit () {
 	int **matrix = new int*[routers];
 
@@ -104,3 +105,4 @@ void printMatrix() {
 		cout << endl;
 	}
 }
+*/
