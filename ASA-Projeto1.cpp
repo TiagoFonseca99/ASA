@@ -8,30 +8,38 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <vector>
+#include <list>
 
 using namespace std;
 
-typedef struct {
-	int id;
-	vector<int*> connections;
-} router;
+class Graph {
+  int Routers;  // Number of routers
+  list<int> *adjacency;
 
-typedef struct {
-	int size;
-	router* firstElement;
-} graph;
+public:
+  Graph() {}
+
+	void graphInit (int r) {
+		Routers = r;
+		adjacency = new list<int>(r);
+	}
+
+  void addEdge(int x, int y) {
+    adjacency[x - 1].push_back(y);
+    adjacency[y - 1].push_back(x);
+  }
+};
 
 /* Variaveis */
 int numRouters, numConnections;
-vector<router> routers;
+Graph *g = new Graph();
 
 void readInput(string fileName) {
 	ifstream file;
 
 	file.open(fileName);
 	if (!file.is_open()) {
-		cout << "error while opening the file";
+		printf("error while opening the file");
 	}
 	else {
 		string line;
@@ -43,25 +51,24 @@ void readInput(string fileName) {
 		getline(file, line);
 		numConnections = stoi(line);
 
+		g->graphInit(numRouters);
 		for (int i = 0; i < numConnections; i++) {
 			getline(file, line);
-			router r;
-
 			ss << line;
 			ss >> numb1 >> numb2;
-			// Não me apeteceu fazer a parte de guardar os elementos xD
+
+			g->addEdge(numb1, numb2);
 			ss.str("");
 			ss.clear();
 		}
-
 		file.close();
 	}
 }
 
 /* Codigo */
 int main(int argc, char *argv[]) {
-	readInput(argv[1]);
-
+		readInput(argv[1]);
+	return 0;
 }
 
 
@@ -70,7 +77,17 @@ int main(int argc, char *argv[]) {
 
 
 
+/*
+typedef struct {
+	int id;
+	list<int*> connections;
+} router;
 
+typedef struct {
+	int size;
+	router* firstElement;
+} graph;
+*/
 
 
 
