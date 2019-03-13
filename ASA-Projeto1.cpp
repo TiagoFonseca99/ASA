@@ -12,6 +12,25 @@
 
 using namespace std;
 
+class SubNetwork {
+	int maxId;
+	int size = 0;
+
+	public :
+		SubNetwork(int id){
+			maxId = id;
+		}
+
+		void incrementSize(){
+			size ++;
+		}
+
+		int getSize(){
+			return size;
+		}
+
+};
+
 class Graph {
   int Routers;  // Number of routers
   list<int> *adjacency;
@@ -32,6 +51,7 @@ public:
 
 /* Variaveis */
 int numRouters, numConnections;
+int numSubNetwork = 0;
 Graph *g = new Graph();
 
 void readInput(string fileName) {
