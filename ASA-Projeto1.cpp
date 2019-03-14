@@ -12,6 +12,7 @@
 
 using namespace std;
 
+// Classes
 class SubNetwork {
 	int maxId;
 	int size = 0;
@@ -57,7 +58,7 @@ class SubNetworkList{
 				head = subNetwork;
 			}
 			else{
-				subNetwork->setNext = head;
+				subNetwork->setNext(head);
 				head = subNetwork;
 			}
 
@@ -91,7 +92,7 @@ class SubNetworkList{
 		void printIds(){
 			SubNetwork* i;
 			for(i=head; i->getNext() != NULL; i=i->getNext())
-				printf("%d ", i->getMaxId);
+				printf("%d ", i->getMaxId());
 			printf("\n");
 		}
 
@@ -120,6 +121,12 @@ public:
 	}
 
 };
+
+
+/* Prototipos */
+void doAll(Graph graph);
+void doAllAux(Graph graph, int id);
+void printer();
 
 /* Variaveis */
 int numRouters, numConnections;
@@ -183,7 +190,7 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < numRouters; i++) {
 		visited[i] = false;
 		subNetworkSize[i] = 0;
-    parent[i] = NULL; 
+    parent[i] = -1; 
   } 
 
 	printer();
@@ -197,10 +204,10 @@ void doAll(Graph graph) {
     // in DFS tree rooted with vertex 'i' 
     for (int i = numRouters-1; i > 0; i--) { 
         if (visited[i] == false) {
-			subNetworkList.AddSubNetwork(i);
+						subNetworkList.AddSubNetwork(i);
             doAllAux(graph, i); 
+				}
 		}
-	}
   
 } 
 
@@ -249,7 +256,7 @@ void doAllAux(Graph graph, int id) {
   
             // (1) id is root of DFS tree and has two or more chilren. 
 						// (2) If id is not root and low value of one of its child is more than discovery value of id. 
-            if (parent[id] == NULL && children > 1 || parent[id] != NULL && low[v] >= disc[id]) {
+            if (parent[id] == -1 && children > 1 || parent[id] != -1 && low[v] >= disc[id]) {
 							numAP++;
 							// Para contar o tamanho dos subNetworks apos os pontos de alocacao serem retiradas
 							subNetworkSize[low[id]]--;
