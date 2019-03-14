@@ -34,6 +34,7 @@ class SubNetwork {
 class Graph {
   int Routers;  // Number of routers
   list<int> *adjacency;
+  
 
 public:
   Graph() {}
