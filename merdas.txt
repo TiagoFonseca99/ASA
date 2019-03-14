@@ -1,0 +1,1 @@
+g++ ./ASA-Projeto1.cpp testes.txt
