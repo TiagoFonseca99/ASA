@@ -1,1 +1,3 @@
-g++ ./ASA-Projeto1.cpp testes.txt
+g++ ./ASA-Projeto1.cpp 
+
+./a.out testes.txt
