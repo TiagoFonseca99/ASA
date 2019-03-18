@@ -51,7 +51,7 @@ class SubNetworkList {
 public:
 	SubNetworkList() {}
 
-	void AddSubNetwork(int id) {
+	void addSubNetwork(int id) {
 		SubNetwork *subNetwork = new SubNetwork(id);
 		if (head == NULL) {
 			head = subNetwork;
@@ -59,6 +59,16 @@ public:
 		else {
 			subNetwork->setNext(head);
 			head = subNetwork;
+		}
+	}
+
+	void clearSubNetwork() {
+		SubNetwork *temp = head;
+
+		while(temp != NULL) {
+			head = temp->getNext();
+			delete temp;
+			temp = head;
 		}
 	}
 
@@ -100,6 +110,16 @@ public:
 		}
 		printf("\n");
 	}
+
+	void printHighest() {
+		SubNetwork* i;
+		int maximum = 0;
+
+		for (i = head; i != NULL; i = i->getNext()) {
+			maximum = max(i->getSize(), maximum);
+		}
+		printf("%d\n", maximum);
+	}
 };
 
 class Graph {
@@ -115,9 +135,19 @@ public:
 	}
 
 	void addEdge(int x, int y) {
-	  adjacency[x - 1].push_back(y - 1);
-	  adjacency[y - 1].push_back(x - 1);
+		adjacency[x - 1].push_back(y - 1);
+	  	adjacency[y - 1].push_back(x - 1);
   	}
+
+	void removeEdge(int x) {
+
+		list<int>::iterator i;
+	    for (i = this->getAdjacency()[x].begin(); i != this->getAdjacency()[x].end(); ++i) {
+			int v = *i;
+			adjacency[v].remove(x);
+		}
+		adjacency[x].erase(adjacency[x].begin(), adjacency[x].end());
+	}
 
 	list<int>* getAdjacency() {
 		return adjacency;
@@ -128,7 +158,8 @@ public:
 /* Prototipos */
 void doAll(Graph graph);
 void doAllAux(Graph graph, int id);
-void printer();
+void printer1();
+void printer2();
 
 /* Variaveis */
 int numRouters, numConnections;
@@ -142,7 +173,6 @@ bool *visited;
 bool *articulationPoints;
 int *disc;
 int *low;
-int *subNetworkSize;
 int *parent;
 
 void listInit(int numRouters) {
@@ -151,7 +181,6 @@ void listInit(int numRouters) {
     disc = new int[numRouters];
     low = new int[numRouters];
 	parent = new int[numRouters];
-    subNetworkSize = new int[numRouters];
 }
 
 void readInput(string fileName) {
@@ -202,11 +231,27 @@ int main(int argc, char *argv[]) {
   	for (int i = 0; i < numRouters; i++) {
 		visited[i] = false;
 		articulationPoints[i] = false;
-		subNetworkSize[i] = 0;
     	parent[i] = -1;
   	}
 	doAll(g);
-	printer();
+	printer1();
+
+	for (int i = 0; i  < numRouters; i++) {
+		if (articulationPoints[i] == true) {
+			g.removeEdge(i);
+		}
+	}
+	numConnections -= numAP;
+	subNetworkList.clearSubNetwork();
+
+	for (int i = 0; i < numRouters; i++) {
+		visited[i] = false;
+		articulationPoints[i] = false;
+    	parent[i] = -1;
+  	}
+
+	doAll(g);
+	printer2();
 
 	return 0;
 }
@@ -215,14 +260,8 @@ void doAll(Graph graph) {
 	int i;
     for (i = numRouters - 1; i > 0; i--) {
         if (visited[i] == false) {
-			subNetworkList.AddSubNetwork(i + 1);
+			subNetworkList.addSubNetwork(i + 1);
             doAllAux(graph, i);
-		}
-	}
-	for (i = 0; i < numRouters; i++) {
-		if (articulationPoints[i] == true) {
-			subNetworkSize[low[i]]--;
-			printf("7 id: %d low[id]: %d subNetworkSize[low[id]]: %d\n", i, low[i], subNetworkSize[low[i]]);
 		}
 	}
 }
@@ -240,9 +279,6 @@ void doAllAux(Graph graph, int id) {
 
     // Initialize discovery time and low value
     disc[id] = low[id] = totalTime++;
-	subNetworkSize[low[id]]++;
-
-	printf("1 id: %d low[id]: %d subNetworkSize[low[id]]: %d\n", id, low[id], subNetworkSize[low[id]]);
 
     // Go through all vertices aadjacent to this
     list<int>::iterator i;
@@ -258,13 +294,7 @@ void doAllAux(Graph graph, int id) {
 
             // Check if the subtree rooted with v has a connection to
             // one of the ancestors of id
-			if (low[v] < low[id]) {
-				subNetworkSize[low[id]]--;
-				printf("2 id: %d low[id]: %d subNetworkSize[low[id]]: %d\n", id, low[id], subNetworkSize[low[id]]);
-				low[id] = low[v];
-				subNetworkSize[low[id]]++;
-				printf("3 id: %d low[id]: %d subNetworkSize[low[id]]: %d\n", id, low[id], subNetworkSize[low[id]]);
-			}
+			low[id] = min(low[v], low[id]);
 
             // id is an articulation point in following cases
 
@@ -280,22 +310,12 @@ void doAllAux(Graph graph, int id) {
         }
         // Update low value of id for parent function calls.
         else if (v != parent[id]) {
-			if (disc[v] < low[id]){
-				subNetworkSize[low[id]]--;
-				printf("5 id: %d low[id]: %d subNetworkSize[low[id]]: %d\n", id, low[id], subNetworkSize[low[id]]);
-				low[id] = disc[v];
-				subNetworkSize[low[id]]++;
-				printf("6 id: %d low[id]: %d subNetworkSize[low[id]]: %d\n", id, low[id], subNetworkSize[low[id]]);
-			}
+			low[id] = min(disc[v], low[id]);
 		}
     }
 }
 
-void printer(){
-
-	for (int i = -1; i < numRouters; i++) {
-		printf("subNetworkSize[%d]: %d\n", i, subNetworkSize[i]);
-	}
+void printer1(){
 
 	// Problema 1
 	printf("%d\n", subNetworkList.size());
@@ -305,14 +325,11 @@ void printer(){
 
 	// Problema 3
 	printf("%d\n", numAP);
+}
 
+void printer2() {
 	// Problema 4
-	int i, max = 0;
-	for(i = 0; i < numRouters; i++) {
-		if (subNetworkSize[i] > max)
-			max = subNetworkSize[i];
-	}
-	printf("%d\n", max);
+	subNetworkList.printHighest();
 }
 
 

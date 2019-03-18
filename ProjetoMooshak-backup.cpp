@@ -60,6 +60,16 @@ public:
 		}
 	}
 
+	void clearSubNetwork() {
+		SubNetwork *temp = head;
+
+		while(temp != NULL) {
+			head = temp->getNext();
+			delete temp;
+			temp = head;
+		}
+	}
+
 	SubNetwork* getFirst() {
 		return head;
 	}
@@ -98,6 +108,16 @@ public:
 		}
 		printf("\n");
 	}
+
+	void printHighest() {
+		SubNetwork* i;
+		int maximum = 0;
+
+		for (i = head; i != NULL; i = i->getNext()) {
+			maximum = max(i->getSize(), maximum);
+		}
+		printf("%d\n", maximum);
+	}
 };
 
 class Graph {
@@ -117,6 +137,16 @@ public:
 	  adjacency[y - 1].push_back(x - 1);
   	}
 
+	void removeEdge(int x) {
+
+		list<int>::iterator i;
+	    for (i = this->getAdjacency()[x].begin(); i != this->getAdjacency()[x].end(); ++i) {
+			int v = *i;
+			adjacency[v].remove(x);
+		}
+		adjacency[x].erase(adjacency[x].begin(), adjacency[x].end());
+	}
+
 	list<int>* getAdjacency() {
 		return adjacency;
 	}
@@ -125,7 +155,8 @@ public:
 /* Prototipos */
 void doAll(Graph graph);
 void doAllAux(Graph graph, int id);
-void printer();
+void printer1();
+void printer2();
 
 /* Variaveis */
 int numRouters, numConnections;
@@ -139,7 +170,6 @@ bool *visited;
 bool *articulationPoints;
 int *disc;
 int *low;
-int *subNetworkSize;
 int *parent;
 
 void listInit(int numRouters) {
@@ -147,7 +177,6 @@ void listInit(int numRouters) {
 	articulationPoints = new bool[numRouters];
     disc = new int[numRouters];
     low = new int[numRouters];
-    subNetworkSize = new int[numRouters];
     parent = new int[numRouters];
 }
 
@@ -181,11 +210,27 @@ int main(int argc, char *argv[]) {
   	for (int i = 0; i < numRouters; i++) {
         visited[i] = false;
 		articulationPoints[i] = false;
-		subNetworkSize[i] = 0;
     	parent[i] = -1;
   	}
 	doAll(g);
-	printer();
+	printer1();
+
+	for (int i = 0; i  < numRouters; i++) {
+		if (articulationPoints[i] == true) {
+			g.removeEdge(i);
+		}
+	}
+	numConnections -= numAP;
+	subNetworkList.clearSubNetwork();
+
+	for (int i = 0; i < numRouters; i++) {
+		visited[i] = false;
+		articulationPoints[i] = false;
+    	parent[i] = -1;
+  	}
+
+	doAll(g);
+	printer2();
 
 	return 0;
 }
@@ -212,7 +257,6 @@ void doAllAux(Graph graph, int id) {
 
     // Initialize discovery time and low value
     disc[id] = low[id] = totalTime++;
-	subNetworkSize[low[id] - 1]++;
 
     // Go through all vertices aadjacent to this
     list<int>::iterator i;
@@ -228,11 +272,8 @@ void doAllAux(Graph graph, int id) {
 
             // Check if the subtree rooted with v has a connection to
             // one of the ancestors of id
-			if (low[v] < low[id]){
-				subNetworkSize[low[id] - 1]--;
-				low[id] = low[v];
-				subNetworkSize[low[id] - 1]++;
-			}
+			low[id] = min(low[v], low[id]);
+
             // id is an articulation point in following cases
 
             // (1) id is root of DFS tree and has two or more chilren.
@@ -247,16 +288,12 @@ void doAllAux(Graph graph, int id) {
         }
         // Update low value of id for parent function calls.
         else if (v != parent[id]) {
-			if (disc[v] < low[id]){
-				subNetworkSize[low[id] - 1]--;
-				low[id] = disc[v];
-				subNetworkSize[low[id] - 1]++;
-			}
+			low[id] = min(disc[v], low[id]);
 		}
     }
 }
 
-void printer(){
+void printer1(){
 
 	// Problema 1
 	printf("%d\n", subNetworkList.size());
@@ -266,12 +303,9 @@ void printer(){
 
 	// Problema 3
 	printf("%d\n", numAP);
+}
 
+void printer2() {
 	// Problema 4
-	int i, max = 0;
-	for (i = 0; i < numRouters; i++) {
-		if (subNetworkSize[i] > max)
-			max = subNetworkSize[i];
-	}
-	printf("%d\n", max);
+	subNetworkList.printHighest();
 }
