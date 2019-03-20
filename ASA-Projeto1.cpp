@@ -4,10 +4,8 @@
 /*	      Tiago Fonseca 89542	       */
 /*=====================================*/
 
-/* Biblioteca */
+/* Libraries */
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <list>
 
 using namespace std;
@@ -44,14 +42,14 @@ public:
 	}
 };
 
-// Lista ligada de subNetworks do grafo original
+// Linked list of subNetworks of the original graph
 class SubNetworkList {
 	SubNetwork *head = NULL;
 
 public:
 	SubNetworkList() {}
 
-	void addSubNetwork(int id) {
+	void AddSubNetwork(int id) {
 		SubNetwork *subNetwork = new SubNetwork(id);
 		if (head == NULL) {
 			head = subNetwork;
@@ -80,6 +78,7 @@ public:
 		int max = 0;
 		int size = 0;
 		SubNetwork* i;
+
 		for(i = head; i != NULL; i = i->getNext()) {
 			if (i->getSize() > size) {
 				size = i->getSize();
@@ -92,14 +91,16 @@ public:
 	int size() {
 		int res = 0;
 		SubNetwork* i;
+
 		for(i = head; i != NULL; i = i->getNext()) {
 			res++;
 		}
 		return res;
 	}
 
-	void printIds() {
+    void printIds() {
 		SubNetwork* i;
+
 		for(i = head; i != NULL; i = i->getNext()) {
 			if (i == head) {
 				printf("%d", i->getMaxId());
@@ -134,15 +135,19 @@ public:
 		adjacency = new list<int>[r];
 	}
 
+	void freeAdjacency () {
+		delete[] adjacency;
+	}
+
 	void addEdge(int x, int y) {
-		adjacency[x - 1].push_back(y - 1);
-	  	adjacency[y - 1].push_back(x - 1);
+	  adjacency[x - 1].push_back(y - 1);
+	  adjacency[y - 1].push_back(x - 1);
   	}
 
 	void removeEdge(int x) {
 
 		list<int>::iterator i;
-	    for (i = this->getAdjacency()[x].begin(); i != this->getAdjacency()[x].end(); ++i) {
+	    for (i = getAdjacency()[x].begin(); i != getAdjacency()[x].end(); ++i) {
 			int v = *i;
 			adjacency[v].remove(x);
 		}
@@ -154,14 +159,13 @@ public:
 	}
 };
 
-
-/* Prototipos */
+/* Prototypes */
 void doAll(Graph graph);
 void doAllAux(Graph graph, int id);
 void printer1();
 void printer2();
 
-/* Variaveis */
+/* Variables */
 int numRouters, numConnections;
 SubNetworkList subNetworkList = SubNetworkList();
 int numAP = 0;
@@ -180,135 +184,111 @@ void listInit(int numRouters) {
 	articulationPoints = new bool[numRouters];
     disc = new int[numRouters];
     low = new int[numRouters];
-	parent = new int[numRouters];
+    parent = new int[numRouters];
 }
 
-void readInput(string fileName) {
-	ifstream file;
+void variablesInit() {
+	for (int i = 0; i < numRouters; i++) {
+        visited[i] = false;
+		articulationPoints[i] = false;
+    	parent[i] = -1;
+  	}
+}
 
-	file.open("testes.txt");
-	if (!file.is_open()) {
-		printf("error while opening the file");
+void readInput() {
+	int numb1, numb2;
+
+    scanf("%d", &numRouters);
+	if (numRouters < 2){
+		printf("Numero de routers tem que ser maior ou igual a 2");
+		exit(-1);
 	}
-	else {
-		string line;
-		int numb1, numb2;
-		stringstream ss;
 
-		getline(file, line);
-		numRouters = stoi(line);
-		if (numRouters < 2){
-			printf("Numero de routers tem que ser maior ou igual a 2");
-			exit(-1);
-		}
-		getline(file, line);
-		numConnections = stoi(line);
-		if (numConnections < 1){
-			printf("Numero de routers tem que ser maior ou igual a 2");
-			exit(-1);
-		}
+	scanf("%d", &numConnections);
+	if (numConnections < 1){
+		printf("Numero de routers tem que ser maior ou igual a 2");
+		exit(-1);
+	}
 
-		g.graphInit(numRouters);
-		listInit(numRouters);
-		for (int i = 0; i < numConnections; i++) {
-			getline(file, line);
-			ss << line;
-			ss >> numb1 >> numb2;
-
-			g.addEdge(numb1, numb2);
-			ss.str("");
-			ss.clear();
-		}
-		file.close();
+	g.graphInit(numRouters);
+    listInit(numRouters);
+	for (int i = 0; i < numConnections; i++) {
+		scanf("%d %d", &numb1, &numb2);
+		g.addEdge(numb1, numb2);
 	}
 }
 
 /* Codigo */
 int main(int argc, char *argv[]) {
-	readInput("a");
 
-	// Initialize parent and numRoutersisited
-  	for (int i = 0; i < numRouters; i++) {
-		visited[i] = false;
-		articulationPoints[i] = false;
-    	parent[i] = -1;
-  	}
+	readInput();
+
+	variablesInit();
 	doAll(g);
 	printer1();
 
+	// Removes adjacencies from all articulation points
 	for (int i = 0; i  < numRouters; i++) {
 		if (articulationPoints[i] == true) {
 			g.removeEdge(i);
 		}
 	}
 	numConnections -= numAP;
+
+	// Clears all the subNetwork content
 	subNetworkList.clearSubNetwork();
 
-	for (int i = 0; i < numRouters; i++) {
-		visited[i] = false;
-		articulationPoints[i] = false;
-    	parent[i] = -1;
-  	}
-
+	variablesInit();
 	doAll(g);
 	printer2();
+
+	delete[] visited;
+	delete[] articulationPoints;
+	delete[] disc;
+	delete[] low;
+	delete[] parent;
+
+	subNetworkList.clearSubNetwork();
+	g.freeAdjacency();
 
 	return 0;
 }
 
 void doAll(Graph graph) {
-	int i;
-    for (i = numRouters - 1; i > 0; i--) {
+    for (int i = numRouters - 1; i > 0; i--) {
         if (visited[i] == false) {
-			subNetworkList.addSubNetwork(i + 1);
+			subNetworkList.AddSubNetwork(i + 1);
             doAllAux(graph, i);
 		}
 	}
 }
 
 void doAllAux(Graph graph, int id) {
-
-    // Count of children in DFS Tree
     int children = 0;
-
-    // Mark the current node as visited
     visited[id] = true;
+	disc[id] = low[id] = totalTime++;
 
 	// Increment size of SubNetwork
 	subNetworkList.getFirst()->incrementSize();
 
-    // Initialize discovery time and low value
-    disc[id] = low[id] = totalTime++;
-
-    // Go through all vertices aadjacent to this
     list<int>::iterator i;
     for (i = graph.getAdjacency()[id].begin(); i != graph.getAdjacency()[id].end(); ++i) {
-        int v = *i;  // v is current adjacent of id
+        int v = *i;
 
-        // If v is not visited yet, then make it a child of id
-        // in DFS tree and recur for it
         if (!visited[v]) {
             children++;
             parent[v] = id;
             doAllAux(graph, v);
 
-            // Check if the subtree rooted with v has a connection to
-            // one of the ancestors of id
 			low[id] = min(low[v], low[id]);
 
-            // id is an articulation point in following cases
-
-            // (1) id is root of DFS tree and has two or more chilren.
-			// (2) If id is not root and low value of one of its child is more than discovery value of id.
             if ((parent[id] == -1 && children > 1) || (parent[id] != -1 && low[v] >= disc[id])) {
 				if (articulationPoints[id] == false) {
 					numAP++;
-					articulationPoints[id] = true;
-					// Para contar o tamanho dos subNetworks apos os pontos de alocacao serem retiradas
+                    articulationPoints[id] = true;
 				}
 			}
         }
-        // Update low value of id for parent function calls.
         else if (v != parent[id]) {
 			low[id] = min(disc[v], low[id]);
 		}
@@ -316,68 +296,17 @@ void doAllAux(Graph graph, int id) {
 }
 
 void printer1(){
-
-	// Problema 1
+	// 1st Output
 	printf("%d\n", subNetworkList.size());
 
-	// Problema 2
+	// 2nd Output
 	subNetworkList.printIds();
 
-	// Problema 3
+	// 3rd Output
 	printf("%d\n", numAP);
 }
 
 void printer2() {
-	// Problema 4
+	// 4th Output
 	subNetworkList.printHighest();
 }
-
-
-
-
-/*
-typedef struct {
-	int id;
-	list<int*> connections;
-} router;
-
-typedef struct {
-	int size;
-	router* firstElement;
-} graph;
-*/
-
-
-
-
-
-
-
-
-
-/*
-int** matrixInit () {
-	int **matrix = new int*[routers];
-
-	for (int i = 0; i < routers; ++i) {
-		matrix[i] = new int[routers];
-	}
-
-	return matrix;
-}
-
-int** addMatrixElement(int x, int y) {
-	matrix[x - 1][y - 1] = 1;
-	matrix[y - 1][x - 1] = 1;
-}
-
-void printMatrix() {
-	cout << "MATRIX" << endl;
-	for (int i = 0; i <routers; i++) {
-		for (int j = 0; j < routers; j++) {
-			cout << matrix[i][j] << " ";
-		}
-		cout << endl;
-	}
-}
-*/
