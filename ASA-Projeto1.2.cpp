@@ -139,20 +139,10 @@ public:
 		delete[] adjacency;
 	}
 
-	void addEdge(int x, int y) {
+	void addRouter(int x, int y) {
 	  adjacency[x - 1].push_back(y - 1);
 	  adjacency[y - 1].push_back(x - 1);
   	}
-
-	void removeEdge(int x) {
-
-		list<int>::iterator i;
-	    for (i = getAdjacency()[x].begin(); i != getAdjacency()[x].end(); ++i) {
-			int v = *i;
-			adjacency[v].remove(x);
-		}
-		adjacency[x].erase(adjacency[x].begin(), adjacency[x].end());
-	}
 
 	list<int>* getAdjacency() {
 		return adjacency;
@@ -223,7 +213,7 @@ void readInput() {
     listInit(numRouters);
 	for (int i = 0; i < numConnections; i++) {
 		scanf("%d %d", &numb1, &numb2);
-		g.addEdge(numb1, numb2);
+		g.addRouter(numb1, numb2);
 	}
 }
 
